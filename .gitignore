@@ -1,0 +1,11 @@
+*.o
+*~
+astroplane
+*.aux
+*.dvi
+*.log
+*.pdf
+*.ps
+*.bak
+xyzzy.txt
+TAGS
