@@ -23,6 +23,6 @@ struct crd_sph_str {
 /* cartesian to spherical */
 void crd_cart2sph(const struct v3_str *crt, struct crd_sph_str *sph);
 /* spherical to cartesian */
-void crd_sph2crt(const struct crd_sph_str *sph, struct v3_str *crt);
+void crd_sph2cart(const struct crd_sph_str *sph, struct v3_str *crt);
 
 #endif

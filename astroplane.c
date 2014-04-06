@@ -214,7 +214,7 @@ int main(int argc, char *argv[])
         u_sph.r = 1.0;
         u_sph.phi = ephDegToRad(ephAltToPhi(stardat.alt));
         u_sph.theta = ephDegToRad(ephAzToTheta(stardat.az));
-        crd_sph2crt(&u_sph, &u_crt);
+        crd_sph2cart(&u_sph, &u_crt);
         /* distance from origin to dot */
         dist = v3_dist_line_plane(&origin, &u_crt, &p0, &n);
 
