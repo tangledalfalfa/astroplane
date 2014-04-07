@@ -40,39 +40,6 @@ double ephASin(double x);
 double ephATan2(double y, double x);
 
 /*
- * ephPolyT:  polynomial calculation, in T
- *   input:
- *     t: time, in centuries since epoch J2000.0
- *     a: array of n coefficients
- *     n: size of array a
- *   returns:
- *     evaluated polynomial, in degrees, in range [0..360)
- */
-double ephPolyT(double t, double *a, int n);
-
-/*
- * ephMeanOblEcl: calculate mean obliquity of the Ecliptic
- *   input:  T
- *   returns: angle in degrees
- *   (see equation (22.3))
- */
-double ephMeanOblEcl(double t);
-
-/*
- * ephEclToEqu: transform ecliptical coordinates to equatorial
- *   input:
- *     lambda: ecliptical longitude, degrees,
- *     beta: ecliptical latitude, degrees,
- *     epsilon: obliquity of the ecliptic, degrees
- *   output:
- *     alpha: right ascension, degrees
- *     delta: declination, degrees
- *     (see equations (13.3), (13.4))
- */
-void ephEclToEqu(double lambda, double beta, double epsilon,
-        double *pAlpha, double *pDelta);
-
-/*
  * ephAltAz: calculation of local horizontal coordinates
  *   input:
  *     lat: latitude, degrees

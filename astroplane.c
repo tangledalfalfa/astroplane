@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <ctype.h>
 #include <math.h>
 
 #include "ephtime.h"
@@ -34,10 +35,11 @@
  * heasarc.gsfc.nasa.gov/W3Browse/all/hipparcos.html
  * visual magnitude <= 6.0
  */
-#define INFILE "hip_magle6.dat"
+#define STARFILE "hip_magle6.dat"
+#define POSNFILE "latlon.dat"
 
-#define LAT DMS2DEG(44, 35, 26.0)
-#define LON DMS2DEG(-104, 42, 55.0)
+#define DFLT_LAT DMS2DEG(44, 35, 26.0)
+#define DFLT_LON DMS2DEG(-104, 42, 55.0)
 
 /* time, UTC */
 #define PLOTYEAR   2013
@@ -105,22 +107,44 @@ static double dms2d(const char *d, int m, float s)
     double ret;
 
     /* leading sign */
-    if (*d++ == '-')
-        sign = -1.0;
-    else
-        sign = 1.0;
+    if (*d == '-') {
+        sign = -1;
+        d++;
+    } else {
+        sign = 1;
+        if (*d == '+')
+            d++;
+    }
 
-    /* 00 .. 89 */
-    ret = (*d++ - '0') * 10.0;
-    ret += *d - '0';
+    /* 0..180 */
+    ret = 0;
+    while (isdigit(*d)) {
+        ret *= 10.0;
+        ret += *d++ - '0';
+    }
 
     ret += ms2deg(m, s);
 
     return ret * sign;
 }
 
-/* scan next star's data from input file, return -1 on EOF */
-static int scan_star(FILE *in, struct star_rec_str *p)
+static int read_latlon(FILE *in, double *lat, double *lon)
+{
+    char d[5];
+    int m;
+    float s;
+
+    if (fscanf(in, "%s %d %f\n", d, &m, &s) == EOF)
+        return -1;
+    *lat = dms2d(d, m, s);
+    if (fscanf(in, "%s %d %f", d, &m, &s) == EOF)
+        return -1;
+    *lon = dms2d(d, m, s);
+    return 0;
+}
+
+/* read next star's data from input file, return -1 on EOF */
+static int read_star(FILE *in, struct star_rec_str *p)
 {
     int ra_hours, ra_minutes;
     float ra_seconds;
@@ -158,7 +182,9 @@ static int scan_star(FILE *in, struct star_rec_str *p)
 /* M A I N */
 int main(int argc, char *argv[])
 {
-    FILE *in;
+    FILE *starfile;
+    FILE *posnfile;
+    double lat, lon;
     struct star_rec_str star_rec;
     /* time, UTC */
     struct ymdhms tstar  = {PLOTYEAR, PLOTMONTH, PLOTDAY,
@@ -178,8 +204,24 @@ int main(int argc, char *argv[])
     n = p0x;
     v3_cross(&n, &p0y);
 
-    in = fopen(INFILE, "r");
-    while (scan_star(in, &star_rec) != -1) {
+    /* read in latitude, longitude */
+    posnfile = fopen(POSNFILE, "r");
+    if (posnfile != NULL) {
+        if (read_latlon(posnfile, &lat, &lon) != 0) {
+            lat = DFLT_LAT;
+            lon = DFLT_LON;
+        }
+        fclose(posnfile);
+    } else {
+        lat = DFLT_LAT;
+        lon = DFLT_LON;
+    }
+#if 1
+    printf("lat: %f, lon: %f\n", lat, lon);
+#endif
+
+    starfile = fopen(STARFILE, "r");
+    while (read_star(starfile, &star_rec) != -1) {
         /* dn is anchored in ne corner, ds in se corner */
         /*
          * dn is wall measurement using NE anchor point
@@ -202,7 +244,7 @@ int main(int argc, char *argv[])
          * I suspect it's due to "RA/DE (of date)" calculation
          * (proper motion)
          */
-        ephStarPos(&tstar, LAT, LON, star_rec.ra, star_rec.dec,
+        ephStarPos(&tstar, lat, lon, star_rec.ra, star_rec.dec,
                    &stardat);
 #if 0
         //printf("\nStar %d:\n", star_rec.hip);
@@ -274,6 +316,6 @@ int main(int argc, char *argv[])
                dn, wn, ds, ws, dia);
 #endif
     }
-    fclose(in);
+    fclose(starfile);
     exit(0);
 }
