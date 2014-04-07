@@ -19,10 +19,14 @@ $(MAIN): $(OBJS)
 	$(CC) $(CCFLAGS) $(INCLUDES) -c $< -o $@
 
 clean:
-	$(RM) *.o *~ $(MAIN)
+	$(RM) *.o *~ $(MAIN) TAGS
 
 depend: $(SRCS)
 	makedepend $(INCLUDES) $^
+
+TAGS: $(SRCS)
+	$(RM) TAGS
+	etags $(SRCS)
 
 # DO NOT DELETE
 
